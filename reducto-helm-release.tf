@@ -11,7 +11,7 @@ resource "helm_release" "reducto" {
   wait       = false
 
   values = [
-    "${file("values/reducto.yaml")}",
+    "${file("../values/reducto.yaml")}",
     <<-EOT
     ingress:
       host: ${var.reducto_host}
