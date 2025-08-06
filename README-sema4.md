@@ -12,7 +12,12 @@ reducto_helm_repo_password = "..."
 reducto_host = "reducto.sema4ai.dev"
 openai_api_key = "..."
 reducto_nlb_cert_arn = "..."
+logfire_environment = "..."
+logfire_token = "..."
 ```
+
+`logfire_environment` should be `dev` or `prod` (depending on the file). `logfire_token` comes from the 1password
+item named "On Prem Reducto on-prem Pydantic Logfire".
 
 ## Choosing environments
 
