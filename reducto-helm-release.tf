@@ -23,6 +23,8 @@ resource "helm_release" "reducto" {
       BUCKET: ${aws_s3_bucket.reducto_storage.bucket}
       OPENAI_API_KEY: ${var.openai_api_key}
       SKIP_AUTH: 1
+      LOGFIRE_TOKEN: ${var.logfire_token}
+      LOGFIRE_ENVIRONMENT: ${var.logfire_environment}
     EOT
   ]
 
