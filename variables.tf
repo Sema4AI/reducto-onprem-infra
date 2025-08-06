@@ -83,4 +83,14 @@ variable "reducto_nlb_cert_arn" {
   type        = string
 }
 
+variable "logfire_environment" {
+  description = "Environment name for logfire (dev or prod)"
+  type        = string
+}
+
+variable "logfire_token" {
+  description = "API token for logfire observability"
+  type        = string
+}
+
 
