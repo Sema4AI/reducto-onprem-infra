@@ -93,4 +93,10 @@ variable "logfire_token" {
   type        = string
 }
 
+variable "datadog_site" {
+  description = "Datadog site URL"
+  type        = string
+  default     = "datadoghq.com"
+}
+
 

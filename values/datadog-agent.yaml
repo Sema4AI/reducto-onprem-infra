@@ -1,0 +1,111 @@
+datadog:
+  apiKey: "${datadog_api_key}"
+  site: "${datadog_site}"
+  clusterName: "${cluster_name}"
+  tags:
+    - "env:${environment}"
+    - "cluster:${cluster_name}"
+  
+  # Enable orchestrator explorer for namespace discovery and Kubernetes metadata
+  orchestratorExplorer:
+    enabled: true
+  
+  # Logs configuration
+  logs:
+    enabled: true
+    containerCollectAll: true
+    containerCollectUsingFiles: true
+  
+  # Process monitoring - disabled for logs-only setup
+  processAgent:
+    enabled: false
+    processCollection: false
+  
+  # APM - disabled for logs-only setup
+  apm:
+    portEnabled: false
+    enabled: false
+  
+  # System probe - disabled for logs-only setup
+  systemProbe:
+    enabled: false
+  
+  # Network monitoring - disabled for logs-only setup
+  networkMonitoring:
+    enabled: false
+  
+  # Security monitoring - disabled for logs-only setup
+  securityAgent:
+    compliance:
+      enabled: false
+    runtime:
+      enabled: false
+
+# Agent configuration
+agents:
+  # Use DaemonSet to ensure one agent per node
+  enabled: true
+  
+  # Resource limits for the agent
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 200m
+      memory: 512Mi
+  
+  # Tolerations to allow scheduling on system nodes
+  tolerations:
+  - key: "CriticalAddonsOnly"
+    operator: "Exists"
+    effect: "NoSchedule"
+  
+  # Node affinity to prefer system nodes
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+          - key: worker-type
+            operator: In
+            values:
+            - system
+
+  # Container log collection configuration
+  containers:
+    agent:
+      env:
+        # Enable log collection
+        - name: DD_LOGS_ENABLED
+          value: "true"
+        # Only collect logs from reducto namespace
+        - name: DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL
+          value: "false"
+        - name: DD_CONTAINER_INCLUDE
+          value: "kube_namespace:reducto"
+        - name: DD_CONTAINER_EXCLUDE
+          value: ""
+        # Additional log processing settings
+        - name: DD_LOGS_CONFIG_AUTO_MULTI_LINE_DETECTION
+          value: "true"
+        - name: DD_LOGS_CONFIG_USE_HTTP
+          value: "true"
+
+# Cluster Agent - required for proper Kubernetes discovery and log collection
+clusterAgent:
+  enabled: true
+  replicas: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 100m
+      memory: 256Mi
+
+# Cluster Checks Runner - disabled for logs-only setup  
+clusterChecksRunner:
+  enabled: false
+
