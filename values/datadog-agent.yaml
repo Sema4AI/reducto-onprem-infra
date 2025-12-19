@@ -15,6 +15,8 @@ datadog:
     enabled: true
     containerCollectAll: true
     containerCollectUsingFiles: true
+    autoMultiLineDetection: true
+    useHTTP: true
   
   # Process monitoring - disabled for logs-only setup
   processAgent:
@@ -55,11 +57,14 @@ agents:
       cpu: 200m
       memory: 512Mi
   
-  # Tolerations to allow scheduling on system nodes
+  # Tolerations to allow scheduling on all nodes
   tolerations:
-  - key: "CriticalAddonsOnly"
-    operator: "Exists"
+  - operator: "Exists"
     effect: "NoSchedule"
+  - operator: "Exists"
+    effect: "NoExecute"
+  - operator: "Exists"
+    effect: "PreferNoSchedule"
   
   # Node affinity to prefer system nodes
   affinity:
@@ -73,25 +78,15 @@ agents:
             values:
             - system
 
-  # Container log collection configuration
   containers:
     agent:
       env:
-        # Enable log collection
         - name: DD_LOGS_ENABLED
           value: "true"
-        # Only collect logs from reducto namespace
         - name: DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL
-          value: "false"
-        - name: DD_CONTAINER_INCLUDE
-          value: "kube_namespace:reducto"
-        - name: DD_CONTAINER_EXCLUDE
-          value: ""
-        # Additional log processing settings
-        - name: DD_LOGS_CONFIG_AUTO_MULTI_LINE_DETECTION
           value: "true"
-        - name: DD_LOGS_CONFIG_USE_HTTP
-          value: "true"
+        - name: DD_CONTAINER_EXCLUDE_LOGS
+          value: "kube_namespace:datadog"
 
 # Cluster Agent - required for proper Kubernetes discovery and log collection
 clusterAgent:
