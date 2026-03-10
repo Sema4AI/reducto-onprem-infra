@@ -1,3 +1,20 @@
+resource "kubectl_manifest" "gcp_credentials_secret" {
+  yaml_body = yamlencode({
+    apiVersion = "v1"
+    kind       = "Secret"
+    metadata = {
+      name      = "gcp-credentials"
+      namespace = "reducto"
+    }
+    type = "Opaque"
+    stringData = {
+      "credentials.json" = file("dev-service-account.json")
+    }
+  })
+
+  depends_on = [module.eks]
+}
+
 resource "helm_release" "reducto" {
   namespace        = "reducto"
   name             = "reducto"
@@ -9,6 +26,7 @@ resource "helm_release" "reducto" {
   chart   = var.reducto_helm_chart
   version = var.reducto_helm_chart_version
   wait    = false
+  # force_update  = true  # TODO: remove after successful deploy
 
   # Use a local ECR in the hopes of faster pod startup (11GB uncompressed container image)
   values = [
@@ -31,6 +49,10 @@ resource "helm_release" "reducto" {
       SKIP_AUTH: 1
       LOGFIRE_TOKEN: ${var.logfire_token}
       LOGFIRE_ENVIRONMENT: ${var.logfire_environment}
+      GCP_PROJECT_ID: ${var.gcp_project_id}
+      GCP_REGION: ${var.gcp_region}
+      GCP_API_KEY: ${var.gcp_api_key}
+      GCP_OCR_ONLY: "true"
     EOT
   ]
 
@@ -42,6 +64,7 @@ resource "helm_release" "reducto" {
     helm_release.ingress_nginx,
     helm_release.karpenter,
     helm_release.keda,
+    kubectl_manifest.gcp_credentials_secret,
     # helm_release.cert_manager,
     aws_ecr_repository.reducto_api,
   ]
