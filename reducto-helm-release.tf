@@ -1,15 +1,23 @@
 resource "helm_release" "reducto" {
-  namespace  = "reducto"
-  name       = "reducto"
+  namespace        = "reducto"
+  name             = "reducto"
   create_namespace = true
 
   repository_username = var.reducto_helm_repo_username
   repository_password = var.reducto_helm_repo_password
 
-  chart = var.reducto_helm_chart
-  version    = var.reducto_helm_chart_version
-  wait       = false
+  chart   = var.reducto_helm_chart
+  version = var.reducto_helm_chart_version
+  wait    = false
 
+#    TODO use instead of upstream
+#    image:
+#      repository: ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.region}.amazonaws.com/reducto-api
+#      tag: v${var.reducto_helm_chart_version}
+#      pullPolicy: IfNotPresent
+#      pullSecretName: ""
+#    replicated:
+#      enableImagePullSecret: false
   values = [
     "${file("values/reducto.yaml")}",
     <<-EOT
@@ -37,5 +45,6 @@ resource "helm_release" "reducto" {
     helm_release.karpenter,
     helm_release.keda,
     # helm_release.cert_manager,
+    # aws_ecr_repository.reducto_api,
   ]
 }
