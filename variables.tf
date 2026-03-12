@@ -99,4 +99,20 @@ variable "datadog_site" {
   default     = "datadoghq.com"
 }
 
+variable "gcp_project_id" {
+  description = "GCP project for Cloud Vision API"
+  type        = string
+}
+
+variable "gcp_region" {
+  description = "Region for Vertex AI"
+  type        = string
+  default     = "us-central1"
+}
+
+variable "gcp_api_key" {
+  description = "API key with no Application or API restrictions to access Cloud Vision API"
+  type        = string
+  sensitive   = true
+}
 
