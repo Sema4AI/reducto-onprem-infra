@@ -31,6 +31,11 @@ resource "helm_release" "reducto" {
       SKIP_AUTH: 1
       LOGFIRE_TOKEN: ${var.logfire_token}
       LOGFIRE_ENVIRONMENT: ${var.logfire_environment}
+    sandbox:
+      enabled: true
+      env:
+        - name: OPENAI_API_KEY
+          value: ${var.openai_api_key}
     EOT
   ]
 
