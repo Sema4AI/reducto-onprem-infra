@@ -2,7 +2,13 @@ module "karpenter" {
   source  = "terraform-aws-modules/eks/aws//modules/karpenter"
   version = "20.33.1"
 
-  cluster_name = var.cluster_name
+  # Dependency on module.eks is plumbed through the output on purpose. A
+  # module-level depends_on defers every data source in this module to apply
+  # time whenever module.eks has pending changes, which turns the node role's
+  # policy attachments into forced replacements (policy_arn becomes unknown).
+  # The detach then runs early in the apply and the re-attach is skipped if
+  # anything in module.eks fails, leaving nodes unable to pull from ECR.
+  cluster_name = module.eks.cluster_name
 
   enable_v1_permissions           = true
   enable_pod_identity             = true
@@ -12,8 +18,22 @@ module "karpenter" {
   node_iam_role_additional_policies = {
     AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
   }
+}
 
-  depends_on = [module.eks]
+# Bottlerocket's pluto calls ec2:DescribeInstances at boot to resolve the node's
+# private DNS name; without it the node fails to bootstrap and powers off.
+resource "aws_iam_role_policy" "karpenter_node_describe_instances" {
+  name = "bottlerocket-describe-instances"
+  role = module.karpenter.node_iam_role_name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["ec2:DescribeInstances"]
+      Resource = "*"
+    }]
+  })
 }
 
 resource "helm_release" "karpenter" {
@@ -55,7 +75,7 @@ resource "kubectl_manifest" "karpenter_node_class" {
       name: default
     spec:
       amiSelectorTerms:
-      - alias: bottlerocket@v1.29.0
+      - alias: bottlerocket@v1.63.0
       userData: |
         [settings.kubernetes]
         image-gc-low-threshold-percent = "50"
