@@ -1,6 +1,6 @@
-# Chart auto-selects PreferSameZone on k8s >=1.31, but that value is only valid
-# on 1.34+. Pin the equivalent stable value; drop once the cluster is on 1.34.
-setTrafficDistribution: "PreferClose"
+# Enable traffic distribution. The chart emits PreferClose on Kubernetes 1.30
+# through 1.33 and PreferSameZone on Kubernetes 1.34+.
+setTrafficDistribution: true
 
 http:
   podDisruptionBudget:
@@ -8,7 +8,7 @@ http:
   replicaCount: 2
   resources:
     requests:
-      cpu: 4
+      cpu: "4"
       memory: 5Gi
     limits:
       memory: 5Gi
@@ -22,12 +22,12 @@ worker:
     enabled: true
   kedaScaler: true
   scaling:
-    minReplicaCount: 2
+    minReplicaCount: 4
     maxReplicaCount: 10
 
   resources:
     requests:
-      cpu: 8
+      cpu: "8"
       memory: 10Gi
 
 ingress:

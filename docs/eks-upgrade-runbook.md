@@ -111,7 +111,8 @@ Nothing is Pending, so Karpenter has no reason to launch. Cordon the old
 Karpenter nodes, then delete a worker pod to force a launch.
 
 **helm fails: `spec.trafficDistribution: Unsupported value: "PreferSameZone"`.**
-The Reducto chart emits `PreferSameZone` on k8s ≥1.31 but it's only valid on
-1.34+. Keep `setTrafficDistribution: "PreferClose"` in `values/reducto.yaml`
-until the cluster is on 1.34.
+`PreferSameZone` is only valid on Kubernetes 1.34+. Keep
+`setTrafficDistribution: true` in `values/reducto.yaml`; the chart selects
+`PreferClose` on older supported Kubernetes versions and `PreferSameZone` on
+1.34+.
 
