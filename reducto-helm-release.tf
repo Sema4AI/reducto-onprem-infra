@@ -33,9 +33,8 @@ resource "helm_release" "reducto" {
       LOGFIRE_ENVIRONMENT: ${var.logfire_environment}
     sandbox:
       enabled: true
-      env:
-        - name: OPENAI_API_KEY
-          value: ${var.openai_api_key}
+      # Reducto 1.12.x renders sandbox.env but does not allow it in the
+      # chart schema. Keep this block limited to schema-supported values.
     EOT
   ]
 
