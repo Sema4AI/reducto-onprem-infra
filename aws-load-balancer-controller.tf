@@ -23,6 +23,9 @@ resource "helm_release" "aws_load_balancer_controller" {
   values = [
     <<-EOT
     clusterName: ${var.cluster_name}
+    # Karpenter nodes set an IMDS hop limit of 1, so pods cannot discover these themselves
+    region: ${var.region}
+    vpcId: ${module.vpc.vpc_id}
     serviceAccount:
       create: true
       name: aws-load-balancer-controller
@@ -31,6 +34,28 @@ resource "helm_release" "aws_load_balancer_controller" {
     tolerations:
     - key: CriticalAddonsOnly
       operator: Exists
+    # Setting affinity disables the chart's configureDefaultAffinity block, so the
+    # default podAntiAffinity is repeated here
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: worker-type
+              operator: In
+              values:
+              - system
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                - aws-load-balancer-controller
+            topologyKey: kubernetes.io/hostname
     EOT
   ]
 
