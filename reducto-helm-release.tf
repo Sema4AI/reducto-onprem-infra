@@ -1,3 +1,14 @@
+locals {
+  # Portkey is opt-in per environment; without a provider the app talks to OpenAI directly.
+  portkey_env = var.portkey_provider == "" ? null : {
+    OPENAI_BASE_URL = var.openai_base_url
+    OPENAI_DEFAULT_HEADERS = jsonencode({
+      "x-portkey-api-key"  = var.openai_api_key
+      "x-portkey-provider" = var.portkey_provider
+    })
+  }
+}
+
 resource "helm_release" "reducto" {
   namespace        = "reducto"
   name             = "reducto"
@@ -11,7 +22,7 @@ resource "helm_release" "reducto" {
   wait    = false
 
   # Use a local ECR in the hopes of faster pod startup (11GB uncompressed container image)
-  values = [
+  values = concat([
     "${file("values/reducto.yaml")}",
     <<-EOT
     image:
@@ -36,7 +47,8 @@ resource "helm_release" "reducto" {
       # Reducto 1.12.x renders sandbox.env but does not allow it in the
       # chart schema. Keep this block limited to schema-supported values.
     EOT
-  ]
+    ,
+  ], local.portkey_env == null ? [] : [yamlencode({ env = local.portkey_env })])
 
   depends_on = [
     module.eks,

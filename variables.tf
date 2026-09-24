@@ -78,6 +78,18 @@ variable "openai_api_key" {
   sensitive = true
 }
 
+variable "openai_base_url" {
+  description = "OpenAI-compatible inference endpoint. Only applied when portkey_provider is set."
+  type        = string
+  default     = "https://api.portkey.ai/v1"
+}
+
+variable "portkey_provider" {
+  description = "Portkey provider slug (e.g. @reducto-self-hosted-dev). Empty routes directly to OpenAI."
+  type        = string
+  default     = ""
+}
+
 variable "reducto_nlb_cert_arn" {
   description = "ARN of the SSL certificate for the NLB"
   type        = string
