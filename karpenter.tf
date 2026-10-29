@@ -36,12 +36,24 @@ resource "aws_iam_role_policy" "karpenter_node_describe_instances" {
   })
 }
 
+# The karpenter chart ships its CRDs in crds/, which helm never updates on an
+# upgrade. CRDs are coupled to the controller version, so they are managed by
+# the standalone chart instead. Keep this version in lockstep with
+# helm_release.karpenter below.
+resource "helm_release" "karpenter_crd" {
+  namespace  = "kube-system"
+  name       = "karpenter-crd"
+  repository = "oci://public.ecr.aws/karpenter"
+  chart      = "karpenter-crd"
+  version    = "1.5.8"
+}
+
 resource "helm_release" "karpenter" {
   namespace  = "kube-system"
   name       = "karpenter"
   repository = "oci://public.ecr.aws/karpenter"
   chart      = "karpenter"
-  version    = "1.2.1"
+  version    = "1.5.8"
   wait       = false
 
   values = [
@@ -63,6 +75,7 @@ resource "helm_release" "karpenter" {
   ]
   depends_on = [
     helm_release.aws_load_balancer_controller,
+    helm_release.karpenter_crd,
     module.karpenter
   ]
 }
